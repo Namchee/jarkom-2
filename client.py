@@ -1,0 +1,22 @@
+import socket
+
+def main():
+    host = "127.0.0.1"
+    port = 8080
+
+    conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    conn.connect((host, port))
+
+    conn.send('{ "session": "test", "name": "Namchee" }'.encode("UTF-8"))
+
+    res = conn.recv(1024)
+    print(res.decode())
+
+    while True:
+        res = conn.recv(1024)
+        if not res:
+            break
+        print(res.decode())
+        
+if __name__ == "__main__":
+    main()

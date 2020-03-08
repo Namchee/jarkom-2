@@ -1,0 +1,38 @@
+[
+    {
+        "no": 1,
+        "soal": "Berikut merupakan mata kuliah wajib di UNPAR, kecuali",
+        "pilihan": [
+            "Pancasila",
+            "Estetika",
+            "Etika",
+            "Logika",
+            "Algoritma dan Struktur Data"
+        ],
+        "jawaban": "Algoritma dan Struktur Data"
+    },
+    {
+        "no": 2,
+        "soal": "Berikut merupakan mata kuliah wajib di UNPAR, kecuali",
+        "pilihan": [
+            "Pancasila",
+            "Estetika",
+            "Etika",
+            "Logika",
+            "Algoritma dan Struktur Data"
+        ],
+        "jawaban": "Algoritma dan Struktur Data"
+    },
+    {
+        "no": 3,
+        "soal": "Berikut merupakan mata kuliah wajib di UNPAR, kecuali",
+        "pilihan": [
+            "Pancasila",
+            "Estetika",
+            "Etika",
+            "Logika",
+            "Algoritma dan Struktur Data"
+        ],
+        "jawaban": "Algoritma dan Struktur Data"
+    }
+]

@@ -12,11 +12,22 @@ def main():
     res = conn.recv(1024)
     print(res.decode())
 
+    while res.strip() != 'END':
+        res=conn.recv(1024)
+        answer=input(" -> ")
+        conn.send(answer.encode())
+        print(res.decode())
+
+    client_socket.close()
+
+"""
     while True:
         res = conn.recv(1024)
         if not res:
             break
         print(res.decode())
+"""     
+        
         
 if __name__ == "__main__":
     main()

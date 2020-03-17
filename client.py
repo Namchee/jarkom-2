@@ -19,20 +19,36 @@ def main():
 
     while res.strip() != 'END':
         res=conn.recv(1024) # terima soal, print
-        question=json.loads(res.decode())
-        print(question)
-        answer=input(" -> ")
-        conn.send(answer.encode())
-        
+        result=res.decode()
+        qdata=json.loads(result["data"])
+        qerr=json.loads(result["error"])
+        if qerr is none:
+            print("Tidak ada soal")
+            break
+        else:
+            print(qdata)
+            answer=input(" -> ")
+            conn.send(answer.encode())
+    
     #menerima scoreboard jawaban
     res=conn.recv(1024)
-    scoring=json.loads(res.decode())
-    print(scoring)
+    result=res.decode()
+    qdata=json.loads(result["data"])
+    qerr=json.loads(result["error"])
+    if qerr is none:
+        print("Jawaban anda tidak tercatat")
+    else:
+        print(qdata)
     
     #menerima scoreboard winner
     res=conn.recv(1024)
-    scoreboard=json.loads(res.decode())
-    print(scoreboard)
+    result=res.decode()
+    qdata=json.loads(result["data"])
+    qerr=json.loads(result["error"])
+    if qerr is none:
+        print("Scoreboard tidak bisa ditampilkan")
+    else:
+        print(qdata)
 
     conn.close() # Ini gak usah dipikirin dulu
 

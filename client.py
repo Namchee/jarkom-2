@@ -1,4 +1,5 @@
 import socket
+import json
 
 """
     Ingat, payload dikirim dalam bentuk JSON! decode dengan json.loads()
@@ -18,11 +19,22 @@ def main():
 
     while res.strip() != 'END':
         res=conn.recv(1024) # terima soal, print
+        question=json.loads(res.decode())
+        print(question)
         answer=input(" -> ")
         conn.send(answer.encode())
-        print(res.decode())
+        
+    #menerima scoreboard jawaban
+    res=conn.recv(1024)
+    scoring=json.loads(res.decode())
+    print(scoring)
+    
+    #menerima scoreboard winner
+    res=conn.recv(1024)
+    scoreboard=json.loads(res.decode())
+    print(scoreboard)
 
-    client_socket.close() # Ini gak usah dipikirin dulu
+    conn.close() # Ini gak usah dipikirin dulu
 
 """
     while True:

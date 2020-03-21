@@ -13,18 +13,18 @@ class Session:
         self.clients = {}
         self.scoreboard = {}
         self.quiz_state = 0
+        self.is_accepting_answer = False
 
     def add_client(self, conn, name):
         if name in self.clients:
-            conn.send('{ "data": false, "error": "Name has already been used" }'.encode("UTF-8"))
+            conn.send('{ "data": false, "error": "Nama panggilan sudah dipakai oleh pengguna lain" }'.encode("UTF-8"))
             conn.close()
         else:
             self.clients[conn] = name
             self.scoreboard[name] = 0
-            print("User {name} terhubung dengan {session}".format(name= name, session=self.name))
             conn.send('{ "data": true, "error": null }'.encode("UTF-8"))
 
-    def get_status(self):
+    def __get_status(self):
         switcher = {
             0: ("Open", "DodgerBlue2", "Start"),
             1: ("Running", "limegreen", "Running"),
@@ -47,21 +47,21 @@ class Session:
 
         self.session_frame.grid_columnconfigure(0, weight = 2)
 
-        label = self.get_status()
+        label = self.__get_status()
 
         self.status_label = Label(status_frame, text = label[0], fg = label[1])
-        self.status_button = Button(status_frame, text = label[2], command = self.start_quiz)
+        self.status_button = Button(status_frame, text = label[2], command = self.__start_quiz)
 
-        detail_button = Button(status_frame, text = "Status", command = self._show_status)
+        detail_button = Button(status_frame, text = "Status", command = self.__show_status)
 
         self.status_label.grid(row = 0, column = 0, sticky = "NSEW")
         self.status_button.grid(row = 0, column = 1, sticky = "NSEW")
         detail_button.grid(row = 0, column = 2, sticky = "NSEW")
 
-    def start_quiz(self):
+    def __start_quiz(self):
         self.quiz_state = 1
         
-        label = self.get_status()
+        label = self.__get_status()
 
         self.status_label["text"] = label[0]
         self.status_label["fg"] = label[1]
@@ -70,43 +70,66 @@ class Session:
         self.status_button["state"] = "disabled"
 
         if len(self.clients) > 0:
-            quiz_loop = Thread(target = self.begin_quiz_loop, daemon = True)
+            quiz_loop = Thread(target = self.__begin_quiz_loop, daemon = True)
             quiz_loop.start()
         else:
             self.stop_quiz()
 
-    def begin_quiz_loop(self):
+    def __begin_quiz_loop(self):
         self.number = 0
 
         for conn in self.clients:
-            conn.send('{ "data": "Quiz will start in 5 seconds. Prepare yourself, good luck!", "error": null }'.encode("UTF-8"))
+            try:
+                conn.send('{ "data": "Kuis akan dimulai dalam waktu 5 detik, selamat berjuang!", "error": null }'.encode("UTF-8"))
+            except ConnectionResetError:
+                name = self.clients[conn]
+                del self.clients[conn]
+                del self.scoreboard[name]
+
+                if len(self.clients) == 0:
+                    self.stop_quiz()
+                    return
 
         sleep(5)
 
         while self.number < len(file_soal):
+            self.is_accepting_answer = True
             self.answers = {} # string-tuple = (jawaban, waktu)
 
             soal = {
-                "soal": (file_soal[self.number]["soal"] + " (anda memiliki waktu 3 menit untuk menjawab)"),
+                "soal": (file_soal[self.number]["soal"] + " (anda memiliki waktu 1 menit untuk menjawab)"),
                 "pilihan": file_soal[self.number]["pilihan"]
             }
             
-            print(self._format_to_json(soal)) # debug
+            print(self.__serialize(soal)) # debug
 
-            payload = self._format_to_json({
-                "data": self._format_to_json(soal),
+            payload = self.__serialize({
+                "data": self.__serialize(soal),
                 "error": None
             }).encode("UTF-8")
 
+            listeners = []
+
             for conn in self.clients:
-                conn.send(payload)
+                try:
+                    print(self.clients[conn])
+                    conn.send(payload)
 
-                listener = Thread(target=self.ask_answer, args=(conn,), daemon=True)
+                    listener = Thread(target=self.__ask_answer, args=(conn,), daemon=True)
+                    listeners.append(listener)
+                except ConnectionResetError:
+                    del self.clients[conn]
+                    continue
+
+            for listener in listeners:
                 listener.start()
-                listener.join(5) # Ubah waktu untuk jawab disini
 
-            self.update_scoreboard()
-            self.post_scoreboard()
+            sleep(15) # Ubah waktu disini
+
+            self.is_accepting_answer = False
+                
+            self.__update_scoreboard()
+            self.__post_scoreboard()
 
             sleep(3)
 
@@ -118,32 +141,34 @@ class Session:
         for client in self.scoreboard:
             winner.append((client, self.scoreboard[client]))
 
-        winner = sorted(winner, key=lambda x: x[1])
+        winner = sorted(winner, key=lambda x: x[1], reverse = True)
 
         result += winner[0][0] + " dengan skor " + str(winner[0][1])
 
-        payload = self._format_to_json({
+        payload = self.__serialize({
             "data": result,
             "error": None
         }).encode("UTF-8")
 
         for conn in self.clients:
             conn.send(payload)
+            conn.close()
         
         self.stop_quiz()
 
-    def ask_answer(self, conn):
-        while True:
+    def __ask_answer(self, conn):
+        while self.is_accepting_answer == True:
             answer = conn.recv(1024).decode("UTF-8")
 
             client = self.clients[conn]
 
             if client in self.answers:
-                conn.send('{ "data": None, "error": "You have already answered for this question!" }'.encode("UTF-8"))
+                conn.send('{ "data": null, "error": "Anda telah menjawab untuk soal ini!" }'.encode("UTF-8"))
 
             self.answers[client] = (answer, time())
+            break
 
-    def update_scoreboard(self):
+    def __update_scoreboard(self):
         answers = []
 
         for answer in self.answers:
@@ -151,15 +176,15 @@ class Session:
 
         answers = sorted(answers, key=lambda x: x[1])
 
-        cur_score = len(self.clients) + 1
+        cur_score = len(self.clients)
 
         for answer in answers:
-            if answer[0] == file_soal[self.number]["jawaban"]:
+            if answer[0].lower() == file_soal[self.number]["jawaban"].lower():
                 self.scoreboard[answer[2]] += cur_score
                 cur_score -= 1
 
-    def post_scoreboard(self):
-        announcements = "Jawaban benar: " + file_soal[self.number]["jawaban"] + ". "
+    def __post_scoreboard(self):
+        announcements = "Jawaban benar: " + file_soal[self.number]["jawaban"] + ".\n"
         announcements += "Score saat ini:"
 
         winner = []
@@ -167,7 +192,7 @@ class Session:
         for client in self.scoreboard:
             winner.append((client, self.scoreboard[client]))
 
-        winner = sorted(winner, key=lambda x: x[1])
+        winner = sorted(winner, key=lambda x: x[1], reverse = True)
 
         for client in winner:
             announcements += "\n" + client[0] + ": " + str(client[1])
@@ -176,42 +201,45 @@ class Session:
         announcements = announcements
 
         for conn in self.clients:
-            verdict = ""
-            name = self.clients[conn]
+            try:
+                verdict = ""
+                name = self.clients[conn]
 
-            if name in self.answers:
-                verdict += "Jawaban anda: " + self.answers[name]
-            else:
-                verdict += "Anda tidak menjawab dalam batas waktu yang telah ditentukan"
+                if name in self.answers:
+                    verdict += "Jawaban anda: " + self.answers[name][0]
+                else:
+                    verdict += "Anda tidak menjawab dalam batas waktu yang telah ditentukan"
 
-            verdict += "\n"
+                verdict += "\n"
 
-            payload = self._format_to_json({
-                "data": verdict + announcements,
-                "error": None
-            }).encode("UTF-8")
+                payload = self.__serialize({
+                    "data": verdict + announcements,
+                    "error": None
+                }).encode("UTF-8")
 
-            conn.send(payload)
+                conn.send(payload)
+            except ConnectionResetError:
+                del self.clients[conn]
 
     def stop_quiz(self):
         self.quiz_state = 2
 
-        label = self.get_status()
+        label = self.__get_status()
         self.status_label["text"] = label[0]
         self.status_label["fg"] = label[1]
         self.status_button["text"] = label[2]
         self.status_button["state"] = "normal"
         self.status_button["fg"] = "black"
-        self.status_button["command"] = self.delete_session
+        self.status_button["command"] = self.__delete_session
 
-    def delete_session(self):
+    def __delete_session(self):
         self.session_frame.destroy()
         self.server.delete_session(self.name)
 
-    def _format_to_json(self, obj):
+    def __serialize(self, obj):
         return dumps(obj, indent=4)
 
-    def _show_status(self):
+    def __show_status(self):
         label = "Jumlah klien yang terhubung dengan sesi ini: " + str(len(self.scoreboard))
 
         if len(self.scoreboard) > 0:

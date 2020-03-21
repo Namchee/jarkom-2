@@ -1,7 +1,7 @@
 import socket
 import json
 from threading import Thread
-from tkinter import Tk, Label, Button, Entry, Frame, simpledialog, messagebox
+from tkinter import Tk, Button, Entry, Frame, messagebox
 from session import Session
 
 HOST = "127.0.0.1"
@@ -12,12 +12,12 @@ class ServerGUI:
         self.master = master
         self.sessions = {}
 
-        self.construct_ui()
+        self.__construct_ui()
 
-        self.server = Thread(target=self.start_server, daemon=True)
+        self.server = Thread(target=self.__start_server, daemon=True)
         self.server.start()
 
-    def construct_ui(self):
+    def __construct_ui(self):
         frame = Frame(self.master)
         frame.pack()
 
@@ -28,18 +28,18 @@ class ServerGUI:
         add_btn = Button(
             frame,
             text="Add Quiz Session",
-            command=self.add_session
+            command=self.__add_session
         )
 
         self.session_name.grid(row = 0, column = 0, sticky = "nsew")
         add_btn.grid(row = 0, column = 1, sticky = "nsew")
 
-        self.master.bind('<Return>', self.handle_enter) # Bind enter key
+        self.master.bind('<Return>', self.__handle_enter) # Bind enter key
 
-    def handle_enter(self, event):
-        self.add_session()
+    def __handle_enter(self, event):
+        self.__add_session()
 
-    def start_server(self):
+    def __start_server(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
             server.bind((HOST, PORT))
             server.listen()
@@ -47,7 +47,6 @@ class ServerGUI:
             while True:
                 conn, _ = server.accept()
                 stri = conn.recv(1024).decode()
-                print(stri)
 
                 info = json.loads(stri)
 
@@ -55,18 +54,18 @@ class ServerGUI:
                     session = self.sessions[info["session"]]
 
                     if session.quiz_state == 1:
-                        conn.send('{ "data": false, "error": "Quiz has already started. You cannot join right now" }'.encode("UTF-8"))
+                        conn.send('{ "data": false, "error": "Kuis sudah dimulai, anda tidak boleh bergabung ditengah jalan" }'.encode("UTF-8"))
                         conn.close()
                     elif session.quiz_state == 2:
-                        conn.send('{ "data": false, "error": "Quiz has already ended" }'.encode("UTF-8"))
+                        conn.send('{ "data": false, "error": "Kuis sudah selesai" }'.encode("UTF-8"))
                         conn.close()
                     else:
                         self.sessions[info["session"]].add_client(conn, info["name"])
                 else:
-                    conn.send('{ "data": false, "error": "Session does not exist" }'.encode("UTF-8"))
+                    conn.send('{ "data": false, "error": "Nama sesi yang anda minta tidak ada" }'.encode("UTF-8"))
                     conn.close()
 
-    def add_session(self):
+    def __add_session(self):
         name = self.session_name.get()
 
         if len(name) == 0:
@@ -88,6 +87,8 @@ class ServerGUI:
 
 def main():
     window = Tk(className="WomQuiz")
+
+    window.resizable(0, 0)
     app = ServerGUI(window)
 
     window.mainloop()

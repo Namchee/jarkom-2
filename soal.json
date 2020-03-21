@@ -13,15 +13,15 @@
     },
     {
         "no": 2,
-        "soal": "Berikut merupakan mata kuliah MKU di UNPAR, kecuali",
+        "soal": "Berikut merupakan mata kuliah IF di UNPAR, kecuali",
         "pilihan": [
-            "Pancasila",
-            "Estetika",
-            "Etika",
-            "Logika",
+            "Data Mining",
+            "Pengantar Jaringan Komputer",
+            "Agama Katolik",
+            "Logika Informatika",
             "Algoritma dan Struktur Data"
         ],
-        "jawaban": "Algoritma dan Struktur Data"
+        "jawaban": "Agama Katolik"
     },
     {
         "no": 3,
@@ -34,5 +34,88 @@
             "Algoritma dan Struktur Data"
         ],
         "jawaban": "Algoritma dan Struktur Data"
+    },
+    {
+        "no": 4,
+        "soal": "Berikut merupakan binatang yang sering muncul di soal praktikum Algoritma dan Struktur Data",
+        "pilihan": [
+            "Buaya",
+            "Wombat",
+            "Kucing",
+            "Beruang",
+            "Kura kura"
+        ],
+        "jawaban": "Wombat"
+    },
+    {
+        "no": 5,
+        "soal": "Berikut merupakan agama yang diakui di Indonesia, kecuali",
+        "pilihan": [
+            "Muslim",
+            "Kristen",
+            "Hindu",
+            "Shinto",
+            "Katolik"
+        ],
+        "jawaban": "Shinto"
+    },
+    {
+        "no": 6,
+        "soal": "Siapakah presiden Indonesia yang sedang menjabat sekarang",
+        "pilihan": [
+            "Megawati Soekarno Putri",
+            "Susilo Bambang Yudhoyono",
+            "Donald Trump",
+            "Joko Widodo",
+            "Winston Churchill"
+        ],
+        "jawaban": "Joko Widodo"
+    },
+    {
+        "no": 7,
+        "soal": "Apakah penyebab kuliah semester genap tahun akademik 2019-2020 diadakan di rumah masing-masing",
+        "pilihan": [
+            "Banjir Jakarta",
+            "Dangdutan",
+            "Internet Gratis",
+            "Kebakaran hutan Australia",
+            "Pandemik Coronavirus"
+        ],
+        "jawaban": "Pandemik Coronavirus"
+    },
+    {
+        "no": 8,
+        "soal": "Berikut ini yang merupakan komoditas langka sekarang adalah",
+        "pilihan": [
+            "Masker",
+            "Laptop",
+            "Piring",
+            "Keripik Kentang",
+            "Pasir"
+        ],
+        "jawaban": "Masker"
+    },
+    {
+        "no": 9,
+        "soal": "Siapakah yang bermimpi menjadi raja bajak laut",
+        "pilihan": [
+            "Naruto",
+            "Tanjirou",
+            "Luffy",
+            "Gintoki",
+            "Shirou"
+        ],
+        "jawaban": "Luffy"
+    },{
+        "no": 10,
+        "soal": "Berikut adalah youtuber kecuali".
+        "pilihan": [
+            "Pewdiepie",
+            "Jacksepticeye",
+            "Markiplier",
+            "Abroad In Japan",
+            "Raffi Ahmad"
+        ],
+        "jawaban": "Raffi Ahmad"
     }
 ]

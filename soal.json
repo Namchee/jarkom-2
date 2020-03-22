@@ -25,15 +25,15 @@
     },
     {
         "no": 3,
-        "soal": "Berikut merupakan mata kuliah MKU di UNPAR, kecuali",
+        "soal": "Berikut merupakan negara-negara yang ada di dunia, kecuali",
         "pilihan": [
-            "Pancasila",
-            "Estetika",
-            "Etika",
-            "Logika",
-            "Algoritma dan Struktur Data"
+            "Indonesia",
+            "Madagaskar",
+            "Wano",
+            "Italia",
+            "Amerika Serikat"
         ],
-        "jawaban": "Algoritma dan Struktur Data"
+        "jawaban": "Wano"
     },
     {
         "no": 4,

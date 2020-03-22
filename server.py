@@ -69,11 +69,11 @@ class ServerGUI:
         name = self.session_name.get()
 
         if len(name) == 0:
-            messagebox.showerror("Error", "Session name must not be empty")
+            messagebox.showerror("Error", "Nama sesi tidak boleh kosong")
             return
 
         if name in self.sessions:
-            messagebox.showerror("Error", "Session name already exists")
+            messagebox.showerror("Error", "Nama sesi sudah ada. Nama sesi tidak boleh duplikat")
             return
             
         self.sessions[name] = Session(name, self)

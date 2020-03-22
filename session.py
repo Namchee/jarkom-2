@@ -2,6 +2,8 @@ from tkinter import Tk, Label, Button, Frame, messagebox
 from json import load, dumps
 from time import sleep, time
 from threading import Thread
+from random import shuffle
+from copy import deepcopy
 
 with open('soal.json', 'r') as file:
     file_soal = load(file)
@@ -92,16 +94,18 @@ class Session:
 
         sleep(5)
 
-        while self.number < len(file_soal):
+        self.session_soal = deepcopy(file_soal)
+
+        shuffle(self.session_soal)
+
+        while self.number < len(self.session_soal):
             self.is_accepting_answer = True
             self.answers = {} # string-tuple = (jawaban, waktu)
 
             soal = {
-                "soal": (file_soal[self.number]["soal"] + " (anda memiliki waktu 1 menit untuk menjawab)"),
-                "pilihan": file_soal[self.number]["pilihan"]
+                "soal": self.session_soal[self.number]["soal"] + " (anda memiliki waktu 1 menit untuk menjawab)",
+                "pilihan": self.session_soal[self.number]["pilihan"]
             }
-            
-            print(self.__serialize(soal)) # debug
 
             payload = self.__serialize({
                 "data": self.__serialize(soal),
@@ -112,7 +116,6 @@ class Session:
 
             for conn in self.clients:
                 try:
-                    print(self.clients[conn])
                     conn.send(payload)
 
                     listener = Thread(target=self.__ask_answer, args=(conn,), daemon=True)
@@ -124,7 +127,7 @@ class Session:
             for listener in listeners:
                 listener.start()
 
-            sleep(15) # Ubah waktu disini
+            sleep(60) # Ubah waktu disini
 
             self.is_accepting_answer = False
                 
@@ -158,15 +161,19 @@ class Session:
 
     def __ask_answer(self, conn):
         while self.is_accepting_answer == True:
-            answer = conn.recv(1024).decode("UTF-8")
+            try:
+                answer = conn.recv(1024).decode("UTF-8")
 
-            client = self.clients[conn]
+                client = self.clients[conn]
 
-            if client in self.answers:
-                conn.send('{ "data": null, "error": "Anda telah menjawab untuk soal ini!" }'.encode("UTF-8"))
+                if client in self.answers:
+                    conn.send('{ "data": null, "error": "Anda telah menjawab untuk soal ini!" }'.encode("UTF-8"))
 
-            self.answers[client] = (answer, time())
-            break
+                self.answers[client] = (answer, time())
+                break
+            except ConnectionResetError:
+                del self.clients[conn]
+                continue
 
     def __update_scoreboard(self):
         answers = []
@@ -179,12 +186,12 @@ class Session:
         cur_score = len(self.clients)
 
         for answer in answers:
-            if answer[0].lower() == file_soal[self.number]["jawaban"].lower():
+            if answer[0].lower() == self.session_soal[self.number]["jawaban"].lower():
                 self.scoreboard[answer[2]] += cur_score
                 cur_score -= 1
 
     def __post_scoreboard(self):
-        announcements = "Jawaban benar: " + file_soal[self.number]["jawaban"] + ".\n"
+        announcements = "Jawaban benar: " + self.session_soal[self.number]["jawaban"] + ".\n"
         announcements += "Score saat ini:"
 
         winner = []
@@ -220,6 +227,7 @@ class Session:
                 conn.send(payload)
             except ConnectionResetError:
                 del self.clients[conn]
+                continue
 
     def stop_quiz(self):
         self.quiz_state = 2
